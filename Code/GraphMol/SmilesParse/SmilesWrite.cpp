@@ -530,13 +530,11 @@ std::string MolToSmiles(const ROMol &mol, const SmilesWriteParams &params,
   if (!mol.getNumAtoms()) {
     return "";
   }
+  std::vector<int> _mapping;
   PRECONDITION(
       params.rootedAtAtom < 0 ||
           static_cast<unsigned int>(params.rootedAtAtom) < mol.getNumAtoms(),
       "rootedAtAtom must be less than the number of atoms");
-  PRECONDITION(
-      params.rootedAtAtom < 0 || MolOps::getMolFrags(mol).size() == 1,
-      "rootedAtAtom can only be used with molecules that have a single fragment");
 
   int rootedAtAtom = params.rootedAtAtom;
   std::vector<std::vector<int>> fragsMolAtomMapping;
@@ -872,6 +870,12 @@ std::string MolFragmentToSmiles(const ROMol &mol,
       bondsInPlay.set(bidx);
     }
   } else {
+    // moved the precondition here to prevent
+    // the index out of range error
+    PRECONDITION(
+        params.rootedAtAtom < 0 || MolOps::getMolFrags(mol).size() == 1,
+        "rootedAtAtom can only be used with molecules that have a single fragment");
+
     for (auto aidx : atomsToUse) {
       for (const auto &bndi : boost::make_iterator_range(
                mol.getAtomBonds(mol.getAtomWithIdx(aidx)))) {
